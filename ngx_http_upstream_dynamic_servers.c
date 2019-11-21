@@ -91,7 +91,7 @@ static char * ngx_http_upstream_dynamic_server_directive(ngx_conf_t *cf, ngx_com
     // END CUSTOMIZATION
 
     time_t                       fail_timeout;
-    ngx_str_t                   *value, s;
+    ngx_str_t                   *value, s, id;
     ngx_url_t                    u;
     ngx_int_t                    weight, max_fails;
     ngx_uint_t                   i;
@@ -192,6 +192,14 @@ static char * ngx_http_upstream_dynamic_server_directive(ngx_conf_t *cf, ngx_com
             continue;
         }
 
+        if (ngx_strncmp(value[i].data, "id=", 3) == 0) {
+
+            id.len = value[i].len - 3;
+            id.data = &value[i].data[3];
+
+            continue;
+        }
+
         // BEGIN CUSTOMIZATION: differs from default "server" implementation
         if (ngx_strcmp(value[i].data, "resolve") == 0) {
             // Determine if the server given is an IP address or a hostname by running
@@ -257,14 +265,14 @@ static char * ngx_http_upstream_dynamic_server_directive(ngx_conf_t *cf, ngx_com
     }
     // END CUSTOMIZATION
 
-#if nginx_version >= 1007002
     us->name = u.url;
-#endif
     us->addrs = u.addrs;
     us->naddrs = u.naddrs;
+    us->host = u.host;
     us->weight = weight;
     us->max_fails = max_fails;
     us->fail_timeout = fail_timeout;
+    us->id = id;
 
     return NGX_CONF_OK;
 
